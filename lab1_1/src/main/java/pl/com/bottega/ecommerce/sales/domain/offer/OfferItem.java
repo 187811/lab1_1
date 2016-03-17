@@ -15,19 +15,22 @@
  */
 package pl.com.bottega.ecommerce.sales.domain.offer;
 
+import java.math.BigDecimal;
+
 public class OfferItem {
 
-    // product
-    private final Item item;
-    private final int quantity;
-    private final Money money;
-    private final Discount discount;
+    private Item item;
+    private int quantity;
+    private double totalCost;
+    private Money money;
+    private Discount discount;
 
     public OfferItem(Item item, int quantity, Money money, Discount discount) {
         this.item = item;
         this.quantity = quantity;
         this.money = money;
         this.discount = discount;
+        this.totalCost = quantity * item.getProductPrice() - discount.getDiscount().doubleValue();
     }
 
 
@@ -38,7 +41,6 @@ public class OfferItem {
     public Item getItem() {
         return item;
     }
-
 
     public int getQuantity() {
         return quantity;
@@ -67,11 +69,7 @@ public class OfferItem {
         return result;
     }
 
-    /**
-     * @param item
-     * @param delta acceptable percentage difference
-     * @return
-     */
+
     public boolean sameAs(OfferItem other, double delta) {
 
         if (item == null) {
@@ -93,9 +91,9 @@ public class OfferItem {
         }
 
         double difference = max - min;
-        double acceptableDelta = delta / 100;
+        double acceptableDelta = new BigDecimal(delta / 100).doubleValue();
 
-        return acceptableDelta <= delta;
+        return acceptableDelta >= difference;
     }
 
 }
