@@ -15,27 +15,18 @@
  */
 package pl.com.bottega.ecommerce.sales.domain.offer;
 
-import java.math.BigDecimal;
-
 public class OfferItem {
 
     // product
     private final Item item;
-
     private final int quantity;
+    private final Money money;
+    private final Discount discount;
 
-    private final BigDecimal totalCost;
-
-    private final String currency;
-
-    // discount
-    private Discount discount;
-
-    public OfferItem(Item item, int quantity, String currency, Discount discount) {
+    public OfferItem(Item item, int quantity, Money money, Discount discount) {
         this.item = item;
         this.quantity = quantity;
-        this.totalCost = item.getProductPrice().multiply(new BigDecimal(quantity)).subtract(discount.getDiscount());
-        this.currency = currency;
+        this.money = money;
         this.discount = discount;
     }
 
@@ -48,60 +39,32 @@ public class OfferItem {
         return item;
     }
 
-    public String getCurrency() {
-        return currency;
-    }
-
-    public BigDecimal getTotalCost() {
-        return totalCost;
-    }
-
-    public String getTotalCostCurrency() {
-        return currency;
-    }
-
 
     public int getQuantity() {
         return quantity;
     }
 
-
     @Override
-    public int hashCode() {
-        int result = item != null ? item.hashCode() : 0;
-        result = 31 * result + quantity;
-        result = 31 * result + (totalCost != null ? totalCost.hashCode() : 0);
-        result = 31 * result + (currency != null ? currency.hashCode() : 0);
-        result = 31 * result + (discount != null ? discount.hashCode() : 0);
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        OfferItem offerItem = (OfferItem) o;
+
+        if (quantity != offerItem.quantity) return false;
+        if (!item.equals(offerItem.item)) return false;
+        if (!money.equals(offerItem.money)) return false;
+        return discount.equals(offerItem.discount);
+
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        OfferItem other = (OfferItem) obj;
-        if (discount == null) {
-            if (other.discount != null)
-                return false;
-        } else if (!discount.equals(other.discount))
-            return false;
-        if (item == null) {
-            if (other.item != null)
-                return false;
-        }
-        if (quantity != other.quantity)
-            return false;
-        if (totalCost == null) {
-            if (other.totalCost != null)
-                return false;
-        } else if (!totalCost.equals(other.totalCost))
-            return false;
-        return true;
+    public int hashCode() {
+        int result = item.hashCode();
+        result = 31 * result + quantity;
+        result = 31 * result + money.hashCode();
+        result = 31 * result + discount.hashCode();
+        return result;
     }
 
     /**
@@ -120,19 +83,19 @@ public class OfferItem {
         if (quantity != other.quantity)
             return false;
 
-        BigDecimal max, min;
-        if (totalCost.compareTo(other.totalCost) > 0) {
-            max = totalCost;
-            min = other.totalCost;
+        double max, min;
+        if (money.getTotalCost() > other.money.getTotalCost()) {
+            max = money.getTotalCost();
+            min = other.money.getTotalCost();
         } else {
-            max = other.totalCost;
-            min = totalCost;
+            max = other.money.getTotalCost();
+            min = money.getTotalCost();
         }
 
-        BigDecimal difference = max.subtract(min);
-        BigDecimal acceptableDelta = max.multiply(new BigDecimal(delta / 100));
+        double difference = max - min;
+        double acceptableDelta = delta / 100;
 
-        return acceptableDelta.compareTo(difference) > 0;
+        return acceptableDelta <= delta;
     }
 
 }
